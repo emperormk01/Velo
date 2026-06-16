@@ -1,12 +1,16 @@
 import express from "express";
 import path from "path";
 import dotenv from "dotenv";
-import { GoogleGenAI, Type } from "@google/genai";
+import { createServer } from "http";
+import { WebSocketServer } from "ws";
+import { GoogleGenAI, Type, Modality, LiveServerMessage } from "@google/genai";
 
 dotenv.config();
 
 const app = express();
 const PORT = 3000;
+const httpServer = createServer(app);
+const wss = new WebSocketServer({ server: httpServer, path: "/api/live" });
 
 app.use(express.json());
 
@@ -385,8 +389,9 @@ app.post("/api/agent/interact", async (req, res) => {
       Return ONLY valid JSON. Absolutely no markdown wrappers like \`\`\`json. Keep it concise but smart. Use realistic references to the Casper Network, its high performance, stable gas prices, and financial contracts.
     `;
 
+    // Use a high-performance Gemini model for complex financial reasoning
     const response = await ai.models.generateContent({
-      model: "gemma-4-31b-it",
+      model: "gemini-3.1-pro-preview",
       contents: prompt,
       config: {
         systemInstruction: systemPrompt,
@@ -489,14 +494,64 @@ app.post("/api/agent/interact", async (req, res) => {
   }
 });
 
-// Vercel Serverless Function Wrapper Check (per instruction 1. "Update the Dev and Build Scripts" / "wrapping app.listen to prevent conflicts with Vercel/production run")
+// Gemini Live API WebSocket Bridge
+wss.on("connection", async (clientWs) => {
+  console.log("[Velo Live] Client connected for voice session");
+  let session: any = null;
+
+  clientWs.on("message", async (data) => {
+    try {
+      const msg = JSON.parse(data.toString());
+
+      if (msg.type === "start") {
+        const ai = getGeminiClient();
+        session = await ai.live.connect({
+          model: "gemini-3.1-flash-live-preview",
+          config: {
+            responseModalities: [Modality.AUDIO],
+            speechConfig: {
+              voiceConfig: { prebuiltVoiceConfig: { voiceName: "Zephyr" } },
+            },
+            systemInstruction: "You are the Velo Agent voice engine. You assist users with autonomous CFO tasks on the Casper network. Speak clearly and professionally.",
+          },
+          callbacks: {
+            onmessage: (message: LiveServerMessage) => {
+              const audio = message.serverContent?.modelTurn?.parts[0]?.inlineData?.data;
+              if (audio) {
+                clientWs.send(JSON.stringify({ type: "audio", data: audio }));
+              }
+              if (message.serverContent?.interrupted) {
+                clientWs.send(JSON.stringify({ type: "interrupted" }));
+              }
+            },
+          },
+        });
+        console.log("[Velo Live] Gemini session connected");
+      } else if (msg.type === "audio" && session) {
+        session.sendRealtimeInput({
+          audio: { data: msg.data, mimeType: "audio/pcm;rate=16000" },
+        });
+      }
+    } catch (err) {
+      console.error("[Velo Live] WebSocket error:", err);
+    }
+  });
+
+  clientWs.on("close", () => {
+    if (session) {
+      session.close();
+      console.log("[Velo Live] session closed");
+    }
+  });
+});
+
+// Vercel Serverless Function Wrapper Check
 if (process.env.NODE_ENV !== "production") {
-  app.listen(PORT, "0.0.0.0", () => {
+  httpServer.listen(PORT, "0.0.0.0", () => {
     console.log(`[Velo Server] Development server running on http://localhost:${PORT}`);
   });
 } else {
-  // If we are in production and running as custom standalone server (e.g. behind Cloud Run or Docker container)
-  app.listen(PORT, "0.0.0.0", () => {
+  httpServer.listen(PORT, "0.0.0.0", () => {
     console.log(`[Velo Server] Production container engine running on port ${PORT}`);
   });
 }

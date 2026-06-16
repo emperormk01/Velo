@@ -24,6 +24,7 @@ import {
 } from "./types";
 import { MetricCard } from "./components/MetricCard";
 import { AgentHeader } from "./components/AgentHeader";
+import { VoiceMode } from "./components/VoiceMode";
 import { InteractionTerminal } from "./components/InteractionTerminal";
 import { ThoughtStream } from "./components/ThoughtStream";
 import { VaultView } from "./components/VaultView";
@@ -210,10 +211,13 @@ export default function App() {
       <main className="lg:ml-20 min-h-screen">
         <div className="max-w-7xl mx-auto px-6 py-8">
           
-          <AgentHeader 
-            identity={session.identity} 
-            onOpenPolicies={() => setIsPolicyOpen(true)}
-          />
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <AgentHeader 
+              identity={session.identity} 
+              onOpenPolicies={() => setIsPolicyOpen(true)}
+            />
+            <VoiceMode />
+          </div>
 
           {/* Quick Metrics Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-8">
