@@ -48,8 +48,15 @@ export default function App() {
   const fetchSession = async () => {
     try {
       const res = await fetch("/api/session");
+      if (!res.ok) throw new Error("Link negotiation failed.");
+      
       const data = await res.json();
-      setSession(data);
+      if (data && typeof data === 'object' && !Array.isArray(data)) {
+        setSession(data);
+        setError(null);
+      } else {
+        throw new Error("Invalid intelligence data received.");
+      }
     } catch (err) {
       console.error("Failed to fetch session", err);
       setError("Communication failure with Velo Corporate Intelligence.");
@@ -145,7 +152,7 @@ export default function App() {
 
   if (!session) {
     return (
-      <div className="min-h-screen bg-zinc-950 flex items-center justify-center text-zinc-500 font-mono text-sm">
+      <div className="min-h-screen bg-zinc-950 flex items-center justify-center text-zinc-500 font-mono text-sm relative">
         <div className="flex flex-col items-center">
           <motion.div 
             animate={{ scale: [1, 1.1, 1], opacity: [0.5, 1, 0.5] }}
@@ -155,6 +162,22 @@ export default function App() {
             <Cpu className="w-12 h-12 text-blue-500" />
           </motion.div>
           <span>Establishing Velo Secure Link...</span>
+          
+          {error && (
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="mt-8 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 max-w-xs text-center"
+            >
+              {error}
+              <button 
+                onClick={() => fetchSession()} 
+                className="mt-2 block w-full py-2 bg-red-500 text-white rounded-lg text-xs font-bold"
+              >
+                RETRY CONNECTION
+              </button>
+            </motion.div>
+          )}
         </div>
       </div>
     );

@@ -17,10 +17,11 @@ app.use(express.json());
 // Lazy-initialized Gemini client helper
 let aiClient: GoogleGenAI | null = null;
 function getGeminiClient(): GoogleGenAI {
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) {
+  const apiKeyRaw = process.env.GEMINI_API_KEY;
+  if (!apiKeyRaw) {
     throw new Error("GEMINI_API_KEY is not configured in the Secrets panel of Google AI Studio.");
   }
+  const apiKey = apiKeyRaw.replace(/^["']|["']$/g, '');
   if (!aiClient) {
     aiClient = new GoogleGenAI({
       apiKey: apiKey,
@@ -545,14 +546,10 @@ wss.on("connection", async (clientWs) => {
   });
 });
 
-// Vercel Serverless Function Wrapper Check
-if (process.env.NODE_ENV !== "production") {
+// Production listener with Vercel safety
+if (process.env.NODE_ENV !== "production" || !process.env.VERCEL) {
   httpServer.listen(PORT, "0.0.0.0", () => {
-    console.log(`[Velo Server] Development server running on http://localhost:${PORT}`);
-  });
-} else {
-  httpServer.listen(PORT, "0.0.0.0", () => {
-    console.log(`[Velo Server] Production container engine running on port ${PORT}`);
+    console.log(`[Velo Server] Server running on http://localhost:${PORT}`);
   });
 }
 
