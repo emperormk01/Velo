@@ -1,121 +1,80 @@
-export interface SpendingPolicy {
-  dailyLimitCspr: number;
-  gasPolicyCspr: number;
-  riskAllowance: string;
-  allowedSmartContracts: string[];
+export interface Message {
+  role: "user" | "assistant" | "system";
+  content: string;
 }
 
-export interface AgentIdentity {
-  name: string;
-  role: string;
-  publicKey: string;
-  privateKeySim: string;
-  avatar: string;
-  budget: number;
-  spendingPolicy: SpendingPolicy;
+export interface ProviderConfig {
+  apiKeyEnv?: string;
+  baseUrl?: string;
 }
 
-export interface MarketAgent {
+export interface ChannelConfig {
+  enabled: boolean;
+  [key: string]: unknown;
+}
+
+export interface SchedulerTask {
   name: string;
-  role: string;
-  creatorsCount: number;
-  microFeeCspr: number;
+  interval: string;
+  prompt: string;
+}
+
+export interface CompactorConfig {
+  enabled: boolean;
+  model: string; // e.g., "ollama:qwen2.5:3b"
+  reflectionModel?: string; // e.g., "google:gemma-3-4b-it"
+  triggerThreshold: number;
+  keepRecent: number; // keep last N messages uncompressed
+  targetRatio?: number; // target compression ratio
+  ollamaBase?: string; // ollama server URL
+}
+
+export interface Config {
+  agent: {
+    name: string;
+    personality: string;
+    model: string;
+  };
+  providers: Record<string, ProviderConfig>;
+  memory: {
+    type: string;
+    path: string;
+    max_context_messages: number;
+  };
+  channels: {
+    telegram?: { enabled: boolean; token_env: string };
+    discord?: { enabled: boolean; token_env: string };
+    slack?: { enabled: boolean; token_env: string; app_token_env: string };
+    email?: { enabled: boolean; host: string; port: number; user_env: string; pass_env: string };
+    webhook?: { enabled: boolean; port: number };
+  };
+  scheduler: {
+    enabled: boolean;
+    tasks: SchedulerTask[];
+  };
+  skills: {
+    directory: string;
+    auto_load: boolean;
+  };
+  compaction?: CompactorConfig;
+}
+
+export interface Skill {
+  name: string;
   description: string;
-  creatorRewardPerc: number;
+  category?: string; // e.g. "Web", "System", "Dev" — used for grouping in system prompt
+  execute: (args: Record<string, unknown>) => Promise<string>;
 }
 
-export interface PublishedAgent {
-  id: string;
-  name: string;
-  role: string;
-  description: string;
-  microFeeCspr: number;
-  revenueEarnedCspr: number;
-  creator: string;
-}
-
-export interface NftMemory {
-  id: string;
-  tokenName: string;
-  symbol: string;
-  image: string;
-  strategyHash: string;
-  narrative: string;
-  apy: string;
-  timestamp: string;
-}
-
-export interface Transaction {
-  id: string;
-  type: string;
-  amountCspr: number;
-  recipient: string;
-  status: string;
-  timestamp: string;
-  hash: string;
-}
-
-export interface NegotiationMessage {
-  speaker: string;
-  message: string;
-}
-
-export interface DataFeedPurchase {
-  feedName: string;
-  provider: string;
-  initialPriceCspr: number;
-  negotiatedPriceCspr: number;
-  negotiationTranscript: NegotiationMessage[];
-  dataFetched: string;
-}
-
-export interface MultiAgentDeal {
-  fromAgent: string;
-  toAgent: string;
-  action: string;
-  paymentCspr: number;
-}
-
-export interface DebateStatement {
-  speaker: string;
-  stance: string;
-  argument: string;
-}
-
-export interface FinalDecision {
-  yieldStrategy: string;
-  estimatedApy: string;
-  riskRating: string;
-  casperContractDetails: {
-    entrypoint: string;
-    gasLimitCspr: number;
-    amountCspr: number;
-    args: string;
+export interface Tool {
+  type: "function";
+  function: {
+    name: string;
+    description: string;
+    parameters: {
+      type: "object";
+      properties: Record<string, { type: string; description: string }>;
+      required?: string[];
+    };
   };
-}
-
-export interface InteractResponse {
-  agentIdentityUpgraded: {
-    status: string;
-    actionTaken: string;
-  };
-  dataFeedsPurchased: DataFeedPurchase[];
-  multiAgentDeals: MultiAgentDeal[];
-  committeeDebate: DebateStatement[];
-  consensusScore: number;
-  finalDecision: FinalDecision;
-  nftMemory: {
-    tokenName: string;
-    symbol: string;
-    strategyHash: string;
-    narrative: string;
-  };
-}
-
-export interface SessionData {
-  identity: AgentIdentity;
-  marketAgents: MarketAgent[];
-  publishedAgents: PublishedAgent[];
-  nfts: NftMemory[];
-  transactions: Transaction[];
 }

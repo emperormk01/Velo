@@ -1,6 +1,0 @@
-{
-  "name": "Velo Agent",
-  "description": "Autonomous AI CFO for internet businesses that spends, earns, and makes decisions on Casper utilizing x402 machine economy and multi-agent consensus.",
-  "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
-}

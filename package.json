@@ -1,37 +1,28 @@
 {
-  "name": "react-example",
-  "private": true,
-  "version": "0.0.0",
+  "name": "velo",
+  "version": "0.1.0",
+  "description": "Fast, persistent AI agent framework - OpenClaw/Nanobot alternative",
   "type": "module",
+  "main": "src/index.ts",
+  "bin": {
+    "velo": "./src/index.ts"
+  },
   "scripts": {
-    "dev": "tsx server.ts",
-    "build": "vite build && esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs",
-    "start": "node dist/server.cjs",
-    "clean": "rm -rf dist server.js",
-    "lint": "tsc --noEmit"
+    "start": "bun run src/index.ts",
+    "build": "bun build src/index.ts --target=bun --compile --outfile dist/velo",
+    "dev": "bun run --watch src/index.ts"
   },
   "dependencies": {
-    "@google/genai": "^2.4.0",
-    "@tailwindcss/vite": "^4.1.14",
-    "@vitejs/plugin-react": "^5.0.4",
-    "dotenv": "^17.2.3",
-    "express": "^4.21.2",
-    "lucide-react": "^0.546.0",
-    "motion": "^12.23.24",
-    "react": "^19.0.1",
-    "react-dom": "^19.0.1",
-    "vite": "^6.2.3",
-    "ws": "^8.21.0"
+    "@google/genai": "^1.48.0",
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "hono": "^4.6.0",
+    "jsonrepair": "^3.13.3",
+    "nodemailer": "^6.9.0",
+    "openai": "^6.33.0",
+    "telegraf": "^4.16.0",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@types/express": "^4.17.21",
-    "@types/node": "^22.14.0",
-    "@types/ws": "^8.18.1",
-    "autoprefixer": "^10.4.21",
-    "esbuild": "^0.25.0",
-    "tailwindcss": "^4.1.14",
-    "tsx": "^4.21.0",
-    "typescript": "~5.8.2",
-    "vite": "^6.2.3"
+    "@types/node": "^22.0.0"
   }
 }
