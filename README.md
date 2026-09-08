@@ -454,3 +454,7 @@ Advanced
 **Install:** `curl -fsSL https://raw.githubusercontent.com/drakelarson/velo/master/install.sh | bash`
 
 **Questions?** Open an issue at [github.com/drakelarson/velo](https://github.com/drakelarson/velo)
+
+---
+
+**Prepared by Emperor M.K** ([@emperormk01](https://github.com/emperormk01) — emperormk01@gmail.com) — Telegram [@emperormk01](https://t.me/emperormk01)
